@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reimbursement Form</title>
+  <meta name="description" content="Fill in the ZHdK payment order (Zahlungsauftrag) for reimbursements without Adobe Acrobat.">
+  <link rel="stylesheet" href="styles.css">
+  <script src="vendor/pdf-lib.min.js" defer></script>
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <p class="eyebrow">ZHdK · Zahlungsauftrag</p>
+      <h1>Reimbursement form</h1>
+      <p class="lede">Fill in your expenses below. You'll get the official ZHdK payment order, ready for the finance staff, and a preview to check your entries. You don't need Adobe Acrobat.</p>
+      <p class="privacy">Your data never leaves your browser: nothing is uploaded or stored.</p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <form id="form" novalidate>
+      <div id="error-summary" class="error-summary" role="alert" tabindex="-1" hidden>
+        <h2>Please check the highlighted fields</h2>
+        <ul></ul>
+      </div>
+
+      <section class="card">
+        <h2>1. Filled in by <span class="de">Erstellt von</span></h2>
+        <div class="grid">
+          <label class="field">
+            <span>First name <span class="de">Vorname</span></span>
+            <input name="createdFirst" autocomplete="given-name" required>
+          </label>
+          <label class="field">
+            <span>Last name <span class="de">Name</span></span>
+            <input name="createdLast" autocomplete="family-name" required>
+          </label>
+          <label class="field">
+            <span>Programme <span class="de">Abteilung</span></span>
+            <select name="programme" id="programme" required>
+              <option value="">Choose…</option>
+            </select>
+          </label>
+          <div class="field">
+            <span id="phone-label">Phone number <span class="de">Tel. Nummer</span></span>
+            <div class="phone">
+              <select name="phonePrefix" id="phone-prefix" aria-label="Country code" required></select>
+              <input name="phoneNumber" type="tel" autocomplete="tel-national" aria-labelledby="phone-label" placeholder="79 123 45 67" required>
+            </div>
+          </div>
+          <label class="field">
+            <span>Date <span class="de">Datum</span></span>
+            <input name="createdDate" type="date" required>
+          </label>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>2. Payee <span class="de">Zahlungsempfänger/in</span></h2>
+        <p class="hint">The person who receives the money, usually you.</p>
+        <div class="grid">
+          <label class="field">
+            <span>First name <span class="de">Vorname</span></span>
+            <input name="payeeFirst" autocomplete="given-name" required>
+          </label>
+          <label class="field">
+            <span>Last name <span class="de">Nachname</span></span>
+            <input name="payeeLast" autocomplete="family-name" required>
+          </label>
+          <label class="field span-2">
+            <span>Street and number <span class="de">Strasse und Hausnummer</span></span>
+            <input name="payeeStreet" autocomplete="street-address" required>
+          </label>
+          <label class="field">
+            <span>Postcode and town <span class="de">Postleitzahl und Ort</span></span>
+            <input name="payeeZipCity" placeholder="e.g. 8005 Zürich" required>
+          </label>
+          <label class="field">
+            <span>Country <span class="de">Land</span></span>
+            <input name="payeeCountry" class="upper" autocomplete="country-name" placeholder="e.g. SCHWEIZ" required>
+          </label>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>3. Bank account <span class="de">Kreditinstitut</span></h2>
+        <label class="check">
+          <input type="checkbox" name="paymentSlip">
+          <span>I'm attaching a payment slip (Einzahlungsschein / QR-bill) instead of bank details</span>
+        </label>
+        <div id="slip-upload" class="slip-upload" hidden></div>
+        <div class="grid" id="bank-fields">
+          <label class="field">
+            <span>Bank name <span class="de">Name der Bank</span></span>
+            <input name="bankName" required data-bank>
+          </label>
+          <label class="field">
+            <span>Bank postcode and town <span class="de">Postleitzahl und Ort</span></span>
+            <input name="bankZipCity" required data-bank>
+          </label>
+          <label class="field">
+            <span>Bank country <span class="de">Land</span></span>
+            <input name="bankCountry" class="upper" required data-bank>
+          </label>
+          <label class="field">
+            <span>SWIFT / BIC <span class="de">SWIFT- oder BIC-Code</span></span>
+            <input name="bankSwift" class="upper" autocomplete="off" spellcheck="false" required data-bank>
+          </label>
+          <label class="field span-2">
+            <span>IBAN</span>
+            <input name="bankIban" class="upper mono" autocomplete="off" spellcheck="false" inputmode="text" required data-bank>
+            <small>The number is checked for typos before the form is generated.</small>
+          </label>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>4. Reason for payment <span class="de">Zahlungsgrund</span></h2>
+        <label class="field">
+          <span>Which course is this reimbursement for?</span>
+          <select name="reason" id="reason" required disabled>
+            <option value="">Choose your programme first</option>
+          </select>
+        </label>
+      </section>
+
+      <section class="card">
+        <h2>5. Expenses <span class="de">Belege</span></h2>
+        <p class="hint">The form can be paid out in <strong>one currency only</strong>. Convert receipts in other currencies into the payout currency before you enter them. You can list up to 10 lines.</p>
+        <p class="hint">For every expense, upload <strong>two documents</strong>: the receipt (Beleg) and the payment as it appears in your bank account (Kontobewegung). Photos and PDFs both work.</p>
+        <label class="field currency">
+          <span>Payout currency <span class="de">Auszahlungs-Währung</span></span>
+          <select name="currency" id="currency" required></select>
+        </label>
+
+        <ol id="rows" class="rows"></ol>
+        <datalist id="booking-suggestions">
+          <option value="3171097000 Exkursion total gemäss Belegen">
+          <option value="3101097000 Materialkosten gemäss Belegen">
+        </datalist>
+
+        <div class="rows-foot">
+          <button type="button" id="add-row" class="btn-ghost">+ Add line</button>
+          <p class="total">Total <strong id="total">0.00</strong> <span id="total-cur">CHF</span></p>
+        </div>
+      </section>
+
+      <div class="actions">
+        <p id="status" class="status" aria-live="polite">
+          <span class="status-text"></span>
+          <button type="button" class="link" id="show-missing">Show what's missing</button>
+        </p>
+        <button type="submit" class="btn-primary" id="generate" aria-describedby="status" disabled>Generate PDFs</button>
+      </div>
+    </form>
+
+    <section id="result" class="card result" hidden tabindex="-1">
+      <h2>Your documents are ready</h2>
+      <ol class="steps">
+        <li><strong>Check the preview</strong> below. If something is wrong, correct it in the form and generate again.</li>
+        <li><strong>Download the official form</strong> and hand it in as your programme tells you to. Your receipts and bank movements are attached inside it. Keep your original receipts, since finance may ask for them.</li>
+      </ol>
+      <div class="downloads">
+        <a class="btn-primary" id="dl-official" download>Download official form</a>
+        <a class="btn-ghost" id="dl-preview" download>Download preview</a>
+      </div>
+      <p class="note">The official form only opens properly in <strong>Adobe Acrobat</strong>, which the finance staff use. Other apps (Preview, browsers) show a "Please wait…" message instead. That's normal, and it's why you get the preview to check your entries. In Acrobat, the receipts are in the attachments panel (paperclip icon).</p>
+      <div class="viewer">
+        <iframe id="preview-frame" title="Preview of the filled form"></iframe>
+        <a id="open-preview" target="_blank" rel="noopener">Open preview in a new tab</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer wrap">
+    <p>Unofficial helper for the ZHdK Zahlungsauftrag. Questions about reimbursements go to your programme office.</p>
+  </footer>
+</body>
+</html>
