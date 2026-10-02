@@ -31,7 +31,8 @@ const data = {
   rows: [
     { text: 'Train ticket Zürich – Linz', amount: '1245.80', receipt: img, bank: bankPdf },
     { text: '3101097000 Materialkosten gemäss Belegen', amount: '38.50', receipt: bankPdf, bank: img },
-    { text: 'Train ticket Zürich – Linz (ÖBB), Łódź test', amount: '120.00', receipt: img, bank: img },
+    { text: 'Train ticket Zürich – Linz (ÖBB), Łódź test', amount: '120.00', receipt: img, bank: img,
+      fx: { amount: '149.18', currency: 'USD', date: '2026-06-13', text: "149.18 USD = 120.00 CHF · BAZG rate of 12.06.2026: 1 USD = 0.80436 CHF" } },
   ],
 };
 

@@ -333,10 +333,19 @@ export async function addReceiptPages(PDFLib, doc, d, { slip = true, expenses = 
     page.drawText(desc, { x: tx, y: top - 27, size: 9, font: regular, color: rgb(0.3, 0.3, 0.3) });
     page.drawLine({ start: { x: M, y: top - 38 }, end: { x: PAGE_W - M, y: top - 38 }, thickness: 0.5 });
 
+    // Currency conversion, so finance can check it: "50.00 USD = 40.22 CHF · BAZG rate of …"
+    let below = 38;
+    if (r.fx) {
+      let fx = clean(`Paid in another currency: ${r.fx.text}`);
+      while (fx.length > 1 && regular.widthOfTextAtSize(fx, 8.5) > maxW) fx = fx.slice(0, -2) + '…';
+      page.drawText(fx, { x: M, y: top - 52, size: 8.5, font: regular, color: rgb(0.15, 0.15, 0.15) });
+      below = 58;
+    }
+
     // Two equal areas below the header
     const footerH = 16;
     const gap = mm(6);
-    const areaTop = top - 38 - gap;
+    const areaTop = top - below - gap;
     const areaH = (areaTop - M - footerH - gap) / 2;
     const areas = [
       ['RECEIPT (BELEG)', r.receipt, areaTop],

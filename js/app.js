@@ -1,7 +1,8 @@
 import { fillXfa } from './xfa-fill.js';
 import { buildPreview, buildReceiptsPdf, buildSlipPdf, formatAmount } from './preview.js';
 import { prepareUpload, UploadError } from './uploads.js';
-import { PROGRAMMES, COMMON_CODES, COUNTRY_CODES, KEEP_LEADING_ZERO } from './options.js';
+import { PROGRAMMES, COMMON_CODES, COUNTRY_CODES, KEEP_LEADING_ZERO, FX_COMMON, FX_CURRENCIES } from './options.js';
+import { convert, RateError } from './exchange.js';
 
 const MAX_ROWS = 10; // the form's table allows at most 10 lines
 
@@ -77,6 +78,19 @@ function syncProgramme() {
   form.programmeOther.required = other;
 }
 
+// Local date as "YYYY-MM-DD" (for the purchase-date limit)
+const todayIso = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+const fxOption = ([code, name]) => `<option value="${code}">${code} · ${esc(name)}</option>`;
+const fxOptions =
+  '<option value="">Currency…</option>' +
+  FX_COMMON.map(fxOption).join('') +
+  '<optgroup label="All currencies">' +
+  FX_CURRENCIES.map(fxOption).join('') +
+  '</optgroup>';
+
+// Currency conversion per expense line: row element -> { on, ok, info, seq }
+const rowFx = new WeakMap();
+
 let rowSeq = 0;
 function addRow() {
   const id = ++rowSeq;
@@ -86,11 +100,23 @@ function addRow() {
     <div class="row-main">
       <span class="num"></span>
       <input class="text" list="booking-suggestions" placeholder="Description or account line">
-      <input class="amount" inputmode="decimal" placeholder="0.00">
+      <span class="amount-wrap"><input class="amount" inputmode="decimal" placeholder="0.00"><span class="cur" aria-hidden="true"></span></span>
       <button type="button" class="remove" aria-label="Remove line">×</button>
+    </div>
+    <div class="fx">
+      <label class="fx-toggle"><input type="checkbox" class="fx-on"> Paid in another currency, not converted by my bank</label>
+      <div class="fx-panel sub-field" hidden>
+        <div class="fx-grid">
+          <label class="field"><span>Amount paid</span><input class="fx-amount" inputmode="decimal" placeholder="0.00"></label>
+          <label class="field"><span>Currency</span><select class="fx-cur">${fxOptions}</select></label>
+          <label class="field"><span>Purchase date</span><input type="date" class="fx-date" max="${todayIso()}"></label>
+        </div>
+        <p class="fx-result" aria-live="polite"></p>
+      </div>
     </div>
     <div class="docs">${DOCS.map((d) => slotHtml(d, id)).join('')}</div>`;
   rowDocs.set(li, { receipt: null, bank: null });
+  rowFx.set(li, { on: false, ok: false, info: null, seq: 0 });
   rowsEl.append(li);
   renumber();
   return li;
@@ -198,6 +224,82 @@ form.addEventListener('change', async (e) => {
   refresh();
 });
 
+// ---- currency conversion --------------------------------------------------------------
+
+const BAZG_URL = 'https://www.rates.bazg.admin.ch/home';
+const ddmmyyyy = (iso) => iso.split('-').reverse().join('.');
+
+function fxMessage(out, text, kind = '') {
+  out.className = `fx-result ${kind}`;
+  out.textContent = text;
+}
+
+// Recomputes a line's amount from what was paid, at the BAZG rate of the purchase date.
+// If the rate can't be loaded, the student converts by hand (amount becomes editable).
+async function updateFx(li) {
+  const st = rowFx.get(li);
+  const seq = ++st.seq;
+  const on = li.querySelector('.fx-on').checked;
+  const amountEl = li.querySelector('.amount');
+  const out = li.querySelector('.fx-result');
+  li.querySelector('.fx-panel').hidden = !on;
+  amountEl.readOnly = on;
+  Object.assign(st, { on, ok: false, info: null });
+  const done = () => {
+    updateTotal();
+    invalidateResult();
+    refresh();
+  };
+  if (!on) {
+    fxMessage(out, '');
+    return done();
+  }
+
+  const orig = parseAmount(li.querySelector('.fx-amount').value);
+  const currency = li.querySelector('.fx-cur').value;
+  const date = li.querySelector('.fx-date').value;
+  const payout = form.currency.value;
+  const wait = (text, kind) => {
+    amountEl.value = '';
+    fxMessage(out, text, kind);
+    done();
+  };
+  if (!payout) return wait('Choose the payout currency (CHF or EUR) above first.');
+  if (!orig || !currency || !date) return wait('Enter the amount you paid, its currency and the purchase date. The amount above is then converted automatically.');
+  if (currency === payout) return wait(`${currency} is already the payout currency, so nothing needs converting. Untick the box and enter the amount directly.`, 'error');
+  if (date > todayIso()) return wait("The purchase date can't be in the future.", 'error');
+
+  fxMessage(out, 'Looking up the official rate…');
+  try {
+    const r = await convert(Number(orig), currency, payout, date);
+    if (seq !== st.seq) return; // a newer change is already being converted
+    amountEl.value = r.value;
+    Object.assign(st, { ok: true, info: { amount: orig, currency, date, text: r.explanation } });
+    fxMessage(out, `✓ ${r.explanation}`, 'ok');
+  } catch (err) {
+    if (seq !== st.seq) return;
+    console.warn(err);
+    amountEl.readOnly = false;
+    if (amountEl.value && !parseAmount(amountEl.value)) amountEl.value = '';
+    Object.assign(st, {
+      ok: true,
+      info: { amount: orig, currency, date, text: `Converted by hand from ${orig} ${currency} (purchase date ${ddmmyyyy(date)})` },
+    });
+    out.className = 'fx-result error';
+    out.textContent = `${err instanceof RateError ? err.message : "The official rate couldn't be loaded."} Look up the rate for ${ddmmyyyy(date)} on the `;
+    const a = Object.assign(document.createElement('a'), { href: BAZG_URL, target: '_blank', rel: 'noopener', textContent: 'BAZG website ↗' });
+    out.append(a, ' and enter the converted amount above yourself.');
+  }
+  done();
+}
+
+// Typing in the amount triggers many conversions; wait for a short pause.
+const fxTimers = new WeakMap();
+function scheduleFx(li, delay = 400) {
+  clearTimeout(fxTimers.get(li));
+  fxTimers.set(li, setTimeout(() => updateFx(li), delay));
+}
+
 // ---- parsing & validation -------------------------------------------------------------
 
 // Accepts 1234.5, 1'234.50, 1 234,50 and 12,5; returns a "1234.50" string or null.
@@ -231,10 +333,24 @@ function formatPhone(code, number) {
 const formatIban = (raw) => raw.replace(/\s+/g, '').toUpperCase().replace(/(.{4})(?=.)/g, '$1 ');
 const swiftIsValid = (raw) => /^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$/.test(raw.replace(/\s+/g, '').toUpperCase());
 
+// The payout currency is shown next to every amount and the total.
 function updateTotal() {
   const total = [...rowsEl.querySelectorAll('.amount')].reduce((s, el) => s + (Number(parseAmount(el.value)) || 0), 0);
+  const cur = form.currency.value;
   document.getElementById('total').textContent = formatAmount(total);
-  document.getElementById('total-cur').textContent = form.currency.value;
+  const totalCur = document.getElementById('total-cur');
+  totalCur.textContent = cur || '(choose CHF or EUR above)';
+  totalCur.classList.toggle('pending', !cur);
+  for (const el of rowsEl.querySelectorAll('.cur')) el.textContent = cur || '–';
+}
+
+// Briefly highlight the amounts so students see they follow the currency toggle.
+function flashCurrency() {
+  for (const el of document.querySelectorAll('.cur, .total')) {
+    el.classList.remove('flash');
+    void el.offsetWidth; // restart the animation
+    el.classList.add('flash');
+  }
 }
 
 // With a payment slip the bank details aren't needed (as on the original form), but the
@@ -299,7 +415,12 @@ function findProblems() {
     const text = li.querySelector('.text');
     const amount = li.querySelector('.amount');
     if (!text.value.trim()) add(text, 'Add a booking text.', `Line ${n}: booking text is missing`);
-    if (!parseAmount(amount.value)) add(amount, 'Enter an amount like 12.50.', `Line ${n}: amount is missing or not valid`);
+    const fx = rowFx.get(li);
+    if (fx.on && !fx.ok) {
+      add(li.querySelector('.fx-amount'), 'Complete the currency conversion.', `Line ${n}: currency conversion is not complete`);
+    } else if (!parseAmount(amount.value)) {
+      add(amount, 'Enter an amount like 12.50.', `Line ${n}: amount is missing or not valid`);
+    }
     const docs = rowDocs.get(li);
     for (const d of DOCS) {
       if (!docs[d.key]) {
@@ -396,6 +517,7 @@ function collectData() {
       text: li.querySelector('.text').value.trim(),
       amount: parseAmount(li.querySelector('.amount').value),
       ...rowDocs.get(li),
+      fx: rowFx.get(li).on ? rowFx.get(li).info : null,
     })),
   };
 }
@@ -496,6 +618,7 @@ form.addEventListener('submit', async (e) => {
 
 // Any change after generating makes the downloaded files outdated.
 form.addEventListener('input', (e) => {
+  if (e.target.closest('.fx') && e.target.matches('.fx-amount')) scheduleFx(e.target.closest('.row'));
   if (e.target.matches('.amount') || e.target.name === 'currency') updateTotal();
   if (e.target.getAttribute('aria-invalid')) {
     e.target.removeAttribute('aria-invalid');
@@ -505,6 +628,11 @@ form.addEventListener('input', (e) => {
   refresh();
 });
 form.addEventListener('change', (e) => {
+  if (e.target.closest('.fx') && !e.target.matches('.fx-amount')) scheduleFx(e.target.closest('.row'), 0);
+  if (e.target.name === 'currency') {
+    flashCurrency();
+    for (const li of rowsEl.children) if (rowFx.get(li).on) scheduleFx(li, 0);
+  }
   if (e.target.name === 'paymentSlip') syncBankState();
   if (e.target === programmeEl) syncProgramme();
   if (e.target.name === 'currency') updateTotal();

@@ -19,7 +19,7 @@
       <p class="eyebrow">Zahlungsauftrag</p>
       <h1>Reimbursement form</h1>
       <p class="lede">Fill in your expenses below. You'll get the official ZHdK payment order, ready for the finance staff, and a preview to check your entries. You don't need Adobe Acrobat.</p>
-      <p class="privacy">Your data never leaves your browser: nothing is uploaded or stored.</p>
+      <p class="privacy">Your data stays in your browser: nothing is uploaded or stored. Only when you convert a currency, the purchase date is sent to the Swiss customs office (BAZG) to look up the official rate.</p>
     </div>
   </header>
 
@@ -148,8 +148,8 @@
           </div>
         </fieldset>
         <div class="note">
-          <p><strong>All amounts must be in the payout currency.</strong> If you paid in another currency and your bank did not officially convert the amount into CHF or EUR, convert it yourself using the exchange rate <strong>on the date of purchase</strong>.</p>
-          <p><a href="https://www.rates.bazg.admin.ch/home" target="_blank" rel="noopener">Official daily exchange rates (Swiss Federal Office for Customs and Border Security, BAZG) ↗</a> Enter your purchase date there to see the rate for that day.</p>
+          <p><strong>All amounts must be in the payout currency.</strong> If you paid in another currency and your bank did not officially convert the amount into CHF or EUR, it must be converted at the official exchange rate <strong>of the date of purchase</strong>.</p>
+          <p>For such an expense, tick <strong>"Paid in another currency"</strong> on its line and enter what you paid: the amount is converted automatically at the <a href="https://www.rates.bazg.admin.ch/home" target="_blank" rel="noopener">official BAZG daily rate ↗</a>, and the calculation is printed on the receipt page.</p>
         </div>
         <div class="note">
           <p><strong>One line per receipt.</strong> For each line, upload the receipt (Beleg) and the matching payment from your bank account (Kontobewegung). Photos and PDFs both work, up to 10 lines.</p>
@@ -164,7 +164,7 @@
 
         <div class="rows-foot">
           <button type="button" id="add-row" class="btn-ghost">+ Add line</button>
-          <p class="total">Total <strong id="total">0.00</strong> <span id="total-cur">CHF</span></p>
+          <p class="total">Total <strong id="total">0.00</strong> <strong id="total-cur"></strong></p>
         </div>
       </section>
 

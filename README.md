@@ -7,7 +7,7 @@ A static web page that lets students fill in the ZHdK payment order (*Zahlungsau
 
 Every expense needs two uploads (photo or PDF): the receipt (*Beleg*) and the bank movement (*Kontobewegung*). They become one page per expense, appended to the preview and embedded in the official form as a file attachment (`…_Belege.pdf`). If the student ticks the payment-slip option, the slip is required too: it comes first in the preview and is a separate attachment (`…_Einzahlungsschein.pdf`) in the official form. Acrobat opens the attachments panel automatically. Acrobat draws XFA pages from the template and ignores appended PDF pages, so an attachment is the only way to include them in the official file.
 
-Everything runs in the browser. No data is uploaded or stored.
+Everything runs in the browser. No data is uploaded or stored; the only outside request is the purchase date sent to the BAZG to look up an exchange rate.
 
 ## How the official form is filled
 
@@ -19,6 +19,7 @@ The form's fields are declared with `bind match="none"`, so the XFA data packet 
 - `js/xfa-fill.js`: fills the official XFA form
 - `js/preview.js`: draws the preview PDF (coordinates taken from the XFA template) and the receipt pages
 - `js/uploads.js`: reads uploaded photos (scaled down to 2000 px) and PDFs
+- `js/exchange.js`: converts expenses paid in another currency at the official BAZG daily rate of the purchase date (reads the data feed behind [rates.bazg.admin.ch](https://www.rates.bazg.admin.ch/home); only the date is sent). If the feed fails, students convert by hand.
 - `js/options.js`: **editable lists**: programmes ("Other" is added automatically) and country calling codes
 - `assets/iad-logo.svg`, `assets/zhdk-logo-en.svg`: Interaction Design and ZHdK logos at the top of the page
 - `assets/Zahlungsauftrag_blank.pdf`: the blank official form
