@@ -99,7 +99,7 @@ function addRow() {
   li.innerHTML = `
     <div class="row-main">
       <span class="num"></span>
-      <input class="text" list="booking-suggestions" placeholder="Description or account line">
+      <input class="text" maxlength="70" placeholder="What did you pay for? e.g. Train ticket Zürich – Linz">
       <span class="amount-wrap"><input class="amount" inputmode="decimal" placeholder="0.00"><span class="cur" aria-hidden="true"></span></span>
       <button type="button" class="remove" aria-label="Remove line">×</button>
     </div>
@@ -127,7 +127,7 @@ function renumber() {
   rows.forEach((li, i) => {
     const n = i + 1;
     li.querySelector('.num').textContent = n;
-    li.querySelector('.text').setAttribute('aria-label', `Booking text, line ${n}`);
+    li.querySelector('.text').setAttribute('aria-label', `What you paid for, line ${n}`);
     li.querySelector('.amount').setAttribute('aria-label', `Amount, line ${n}`);
     li.querySelector('.remove').setAttribute('aria-label', `Remove line ${n}`);
     li.querySelector('.remove').disabled = rows.length === 1;
@@ -414,7 +414,7 @@ function findProblems() {
     const n = i + 1;
     const text = li.querySelector('.text');
     const amount = li.querySelector('.amount');
-    if (!text.value.trim()) add(text, 'Add a booking text.', `Line ${n}: booking text is missing`);
+    if (!text.value.trim()) add(text, 'Describe what you paid for.', `Line ${n}: description is missing`);
     const fx = rowFx.get(li);
     if (fx.on && !fx.ok) {
       add(li.querySelector('.fx-amount'), 'Complete the currency conversion.', `Line ${n}: currency conversion is not complete`);
