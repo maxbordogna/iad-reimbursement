@@ -5,9 +5,6 @@ import { PROGRAMMES, COMMON_CODES, COUNTRY_CODES, KEEP_LEADING_ZERO } from './op
 
 const MAX_ROWS = 10; // the form's table allows at most 10 lines
 
-// Currencies offered by the official form (common ones first).
-const COMMON = ['CHF', 'EUR', 'GBP', 'USD'];
-const OTHER = 'AED AFN ALL AMD ANG AOA ARS AUD AWG AZN BAM BBD BDT BGN BHD BIF BMD BND BOB BOV BRL BSD BTN BWP BYR BZD CAD CDF CHE CHW CLF CLP CNY COP COU CRC CUC CUP CVE CZK DJF DKK DOP DZD EGP ERN ETB FJD FKP GEL GHS GIP GMD GNF GTQ GYD HKD HNL HRK HTG HUF IDR ILS INR IQD IRR ISK JMD JOD JPY KES KGS KHR KMF KPW KRW KWD KYD KZT LAK LBP LKR LRD LSL LYD MAD MDL MGA MKD MMK MNT MOP MRO MUR MVR MWK MXN MXV MYR MZN NAD NGN NIO NOK NPR NZD OMR PAB PEN PGK PHP PKR PLN PYG QAR RON RSD RUB RWF SAR SBD SCR SDG SEK SGD SHP SLL SOS SRD SSP STD SVC SYP SZL THB TJS TMT TND TOP TRY TTD TWD TZS UAH UGX UYI UYU UZS VEF VND VUV WST XAF XCD XOF XPF XSU YER ZAR'.split(' ');
 
 const DOCS = [
   { key: 'receipt', label: 'Receipt', de: 'Beleg', hint: 'The official receipt or invoice' },
@@ -37,14 +34,13 @@ const slotHtml = (d, id) => `
 const form = document.getElementById('form');
 const rowsEl = document.getElementById('rows');
 const addRowBtn = document.getElementById('add-row');
-const currencyEl = document.getElementById('currency');
 const resultEl = document.getElementById('result');
 const summaryEl = document.getElementById('error-summary');
 const generateBtn = document.getElementById('generate');
 const statusEl = document.getElementById('status');
 const bankFields = document.getElementById('bank-fields');
 const programmeEl = document.getElementById('programme');
-const reasonEl = document.getElementById('reason');
+const programmeOtherField = document.getElementById('programme-other-field');
 const prefixEl = document.getElementById('phone-prefix');
 const slipEl = document.getElementById('slip-upload');
 
@@ -61,18 +57,12 @@ const docStore = (slot) => {
 
 // ---- setup ----------------------------------------------------------------------------
 
-currencyEl.innerHTML =
-  '<option value="">Choose…</option>' +
-  COMMON.map((c) => `<option>${c}</option>`).join('') +
-  '<optgroup label="Other currencies">' +
-  OTHER.map((c) => `<option>${c}</option>`).join('') +
-  '</optgroup>';
 
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
 const countryOption = ([country, code]) => `<option value="${esc(country)}">${code} ${esc(country)}</option>`;
 const dialCode = (country) => (COUNTRY_CODES.find(([c]) => c === country) || COMMON_CODES.find(([c]) => c === country))?.[1] || '';
 
-programmeEl.innerHTML += Object.keys(PROGRAMMES).map((p) => `<option>${esc(p)}</option>`).join('');
+programmeEl.innerHTML += [...PROGRAMMES, 'Other'].map((p) => `<option>${esc(p)}</option>`).join('');
 prefixEl.innerHTML =
   '<option value="">Country…</option>' +
   COMMON_CODES.map(countryOption).join('') +
@@ -80,24 +70,11 @@ prefixEl.innerHTML =
   COUNTRY_CODES.map(countryOption).join('') +
   '</optgroup>';
 
-// The courses offered under "Reason for payment" depend on the programme.
-// Grouped by semester; the value also names programme and semester.
-function syncReasons() {
-  const programme = PROGRAMMES[programmeEl.value];
-  const current = reasonEl.value;
-  reasonEl.disabled = !programme;
-  reasonEl.innerHTML = programme
-    ? '<option value="">Choose…</option>' +
-      programme.semesters
-        .map(
-          ({ title, courses }, i) =>
-            `<optgroup label="Semester ${i + 1} – ${esc(title)}">` +
-            courses.map((c) => `<option value="${esc(`${programme.short} Semester ${i + 1}: ${c}`)}">${esc(c)}</option>`).join('') +
-            '</optgroup>'
-        )
-        .join('')
-    : '<option value="">Choose your programme first</option>';
-  if ([...reasonEl.options].some((o) => o.value === current)) reasonEl.value = current;
+// "Other" asks for the programme name.
+function syncProgramme() {
+  const other = programmeEl.value === 'Other';
+  programmeOtherField.hidden = !other;
+  form.programmeOther.required = other;
 }
 
 let rowSeq = 0;
@@ -257,7 +234,7 @@ const swiftIsValid = (raw) => /^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$/.test(raw.rep
 function updateTotal() {
   const total = [...rowsEl.querySelectorAll('.amount')].reduce((s, el) => s + (Number(parseAmount(el.value)) || 0), 0);
   document.getElementById('total').textContent = formatAmount(total);
-  document.getElementById('total-cur').textContent = currencyEl.value || '';
+  document.getElementById('total-cur').textContent = form.currency.value;
 }
 
 // With a payment slip the bank details aren't needed (as on the original form), but the
@@ -273,6 +250,7 @@ const LABELS = {
   createdFirst: 'Filled in by: first name',
   createdLast: 'Filled in by: last name',
   programme: 'Programme',
+  programmeOther: 'Programme name',
   phonePrefix: 'Phone: country code',
   phoneNumber: 'Phone number',
   createdDate: 'Filled in by: date',
@@ -286,7 +264,7 @@ const LABELS = {
   bankCountry: 'Bank country',
   bankSwift: 'SWIFT / BIC',
   bankIban: 'IBAN',
-  reason: 'Reason for payment (course)',
+  reason: 'Reason for payment',
   currency: 'Payout currency',
 };
 
@@ -295,12 +273,10 @@ function findProblems() {
   const problems = [];
   const add = (el, message, summary) => problems.push({ el, message, summary });
 
-  for (const el of form.querySelectorAll('input[name], textarea[name], select[name]')) {
-    if (el.required && !el.value.trim()) {
-      const message = el.name === 'reason' && el.disabled ? 'Choose your programme first.' : 'Please fill this in.';
-      add(el, message, `${LABELS[el.name]} is missing`);
-    }
+  for (const el of form.querySelectorAll('input[name]:not([type="radio"]), textarea[name], select[name]')) {
+    if (el.required && !el.value.trim()) add(el, 'Please fill this in.', `${LABELS[el.name]} is missing`);
   }
+  if (!form.currency.value) add(form.currency[0], 'Choose CHF or EUR.', 'Payout currency is missing');
   const phone = form.phoneNumber;
   if (phone.value.trim() && !/^[\d\s\-/().]{4,}$/.test(phone.value.trim())) {
     add(phone, 'Use digits only, e.g. 79 123 45 67.', 'Phone number is not valid');
@@ -392,7 +368,7 @@ function collectData() {
   return {
     createdBy: {
       name: `${v('createdFirst')} ${v('createdLast')}`,
-      deptTel: `${v('programme')} / ${formatPhone(dialCode(v('phonePrefix')), v('phoneNumber'))}`,
+      deptTel: `${programmeEl.value === 'Other' ? v('programmeOther') : v('programme')} / ${formatPhone(dialCode(v('phonePrefix')), v('phoneNumber'))}`,
       date: v('createdDate'),
     },
     workflow: '', // filled in later by the programme's secretary
@@ -415,7 +391,7 @@ function collectData() {
           iban: formatIban(v('bankIban')),
         },
     reason: v('reason'),
-    currency: currencyEl.value,
+    currency: form.currency.value,
     rows: [...rowsEl.children].map((li) => ({
       text: li.querySelector('.text').value.trim(),
       amount: parseAmount(li.querySelector('.amount').value),
@@ -434,6 +410,21 @@ const fetchBytes = (url) =>
 let assets;
 const loadAssets = () =>
   (assets ??= Promise.all([fetchBytes('assets/Zahlungsauftrag_blank.pdf'), fetchBytes('assets/zhdk-logo.png')]));
+
+const confirmEl = document.getElementById('confirm-checked');
+const stepSend = document.getElementById('step-send');
+function syncStep2() {
+  const ok = confirmEl.checked;
+  stepSend.toggleAttribute('data-locked', !ok);
+  document.getElementById('stepper-1').className = ok ? 'done' : 'current';
+  document.getElementById('stepper-2').className = ok ? 'current' : '';
+  document.querySelector('.next-hint').hidden = !ok;
+  document.getElementById('dl-official').setAttribute('aria-disabled', String(!confirmEl.checked));
+}
+confirmEl.addEventListener('change', () => {
+  syncStep2();
+  if (confirmEl.checked) stepSend.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+});
 
 let urls = [];
 function invalidateResult() {
@@ -455,12 +446,13 @@ form.addEventListener('submit', async (e) => {
   }
   clearErrors();
   const data = collectData();
-  // YYYYMMDD_Zahlungsauftrag_Name_Course, e.g. 20260925_Zahlungsauftrag_Muster_BA_Semester_4_Field_Trip
+  // YYYYMMDD_Zahlungsauftrag_Name_Reason, e.g. 20260925_Zahlungsauftrag_Muster_Field_Trip_Linz_BA_Semester_4
+  // (the reason is shortened so file names stay manageable)
   const base = [
     data.createdBy.date.replace(/-/g, ''),
     'Zahlungsauftrag',
     fileSafe(form.payeeLast.value.trim()),
-    fileSafe(data.reason),
+    fileSafe(data.reason).slice(0, 50).replace(/_$/, ''),
   ].filter(Boolean).join('_');
 
   generateBtn.disabled = true;
@@ -482,8 +474,10 @@ form.addEventListener('submit', async (e) => {
     const previewUrl = URL.createObjectURL(new Blob([preview], { type: 'application/pdf' }));
     urls = [officialUrl, previewUrl];
 
-    Object.assign(document.getElementById('dl-official'), { href: officialUrl, download: `${base}.pdf` });
-    Object.assign(document.getElementById('dl-preview'), { href: previewUrl, download: `${base}_PREVIEW.pdf` });
+    Object.assign(document.getElementById('dl-official'), { href: officialUrl, download: `${base}_FOR_FINANCE.pdf` });
+    Object.assign(document.getElementById('dl-preview'), { href: previewUrl, download: `${base}_PREVIEW_do_not_submit.pdf` });
+    confirmEl.checked = false;
+    syncStep2();
     document.getElementById('open-preview').href = previewUrl;
     document.getElementById('preview-frame').src = previewUrl;
 
@@ -502,7 +496,7 @@ form.addEventListener('submit', async (e) => {
 
 // Any change after generating makes the downloaded files outdated.
 form.addEventListener('input', (e) => {
-  if (e.target.matches('.amount') || e.target === currencyEl) updateTotal();
+  if (e.target.matches('.amount') || e.target.name === 'currency') updateTotal();
   if (e.target.getAttribute('aria-invalid')) {
     e.target.removeAttribute('aria-invalid');
     document.getElementById(e.target.getAttribute('aria-describedby'))?.remove();
@@ -512,11 +506,12 @@ form.addEventListener('input', (e) => {
 });
 form.addEventListener('change', (e) => {
   if (e.target.name === 'paymentSlip') syncBankState();
-  if (e.target === programmeEl) syncReasons();
-  if (e.target === currencyEl) updateTotal();
+  if (e.target === programmeEl) syncProgramme();
+  if (e.target.name === 'currency') updateTotal();
   refresh();
 });
 
 addRow();
 syncBankState();
+syncProgramme();
 refresh();

@@ -29,7 +29,7 @@ const data = {
   reason: 'Reimbursement FieldTrip Ars Electronica Linz HS26',
   currency: 'CHF',
   rows: [
-    { text: '3171097000 Exkursion total gemäss Belegen', amount: '1245.80', receipt: img, bank: bankPdf },
+    { text: 'Train ticket Zürich – Linz', amount: '1245.80', receipt: img, bank: bankPdf },
     { text: '3101097000 Materialkosten gemäss Belegen', amount: '38.50', receipt: bankPdf, bank: img },
     { text: 'Train ticket Zürich – Linz (ÖBB), Łódź test', amount: '120.00', receipt: img, bank: img },
   ],

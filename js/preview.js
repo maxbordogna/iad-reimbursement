@@ -317,20 +317,26 @@ export async function addReceiptPages(PDFLib, doc, d, { slip = true, expenses = 
     const page = doc.addPage([PAGE_W, PAGE_H]);
     const top = PAGE_H - M;
 
-    // Header: "Beleg 1 / 3", booking text, amount
-    page.drawText(`Beleg ${i + 1} / ${n}`, { x: M, y: top - 12, size: 12, font: bold });
+    // Header: a large number badge (matches the line in the form's table), "Beleg 1 / 3",
+    // booking text and amount
+    const badge = 32;
+    const num = String(i + 1);
+    page.drawRectangle({ x: M, y: top - badge, width: badge, height: badge, color: rgb(0, 0, 0) });
+    page.drawText(num, { x: M + (badge - bold.widthOfTextAtSize(num, 18)) / 2, y: top - badge / 2 - 6.5, size: 18, font: bold, color: rgb(1, 1, 1) });
+    const tx = M + badge + 10;
+    page.drawText(`Beleg ${i + 1} / ${n}`, { x: tx, y: top - 12, size: 12, font: bold });
     const amount = `${formatAmount(Number(r.amount))} ${d.currency}`;
     page.drawText(clean(amount), { x: PAGE_W - M - bold.widthOfTextAtSize(clean(amount), 12), y: top - 12, size: 12, font: bold });
     let desc = clean(r.text);
     const maxW = PAGE_W - 2 * M;
-    while (desc.length > 1 && regular.widthOfTextAtSize(desc, 9) > maxW) desc = desc.slice(0, -2) + '…';
-    page.drawText(desc, { x: M, y: top - 27, size: 9, font: regular, color: rgb(0.3, 0.3, 0.3) });
-    page.drawLine({ start: { x: M, y: top - 34 }, end: { x: PAGE_W - M, y: top - 34 }, thickness: 0.5 });
+    while (desc.length > 1 && regular.widthOfTextAtSize(desc, 9) > maxW - badge - 10) desc = desc.slice(0, -2) + '…';
+    page.drawText(desc, { x: tx, y: top - 27, size: 9, font: regular, color: rgb(0.3, 0.3, 0.3) });
+    page.drawLine({ start: { x: M, y: top - 38 }, end: { x: PAGE_W - M, y: top - 38 }, thickness: 0.5 });
 
     // Two equal areas below the header
     const footerH = 16;
     const gap = mm(6);
-    const areaTop = top - 34 - gap;
+    const areaTop = top - 38 - gap;
     const areaH = (areaTop - M - footerH - gap) / 2;
     const areas = [
       ['RECEIPT (BELEG)', r.receipt, areaTop],
