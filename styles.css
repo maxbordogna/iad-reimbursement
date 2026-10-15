@@ -77,7 +77,7 @@ h1 { margin: 0 0 12px; font-size: clamp(28px, 5vw, 40px); line-height: 1.1; lett
 .field { display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 600; }
 .field .de { font-weight: 400; }
 .field small { font-weight: 400; color: var(--muted); font-size: 13px; }
-.optional { margin-left: 6px; font-size: 13px; font-weight: 400; font-style: italic; color: var(--muted); }
+.optional { margin-left: 0; font-size: 13px; font-weight: 400; font-style: italic; color: var(--muted); }
 .required-note { margin: 0 0 14px; font-size: 14px; color: var(--muted); }
 .sub-field { margin-top: 10px; padding-left: 14px; border-left: 3px solid var(--text); }
 fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
@@ -103,6 +103,9 @@ input:focus, select:focus, textarea:focus, button:focus-visible, a:focus-visible
 }
 .upper { text-transform: uppercase; }
 .upper::placeholder { text-transform: none; }
+/* Optional fields are grey, so the required ones stand out */
+.optional-input { background: var(--bg); border-style: dashed; }
+.optional-input:focus { background: var(--field); border-style: solid; }
 .mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; letter-spacing: .03em; }
 
 [aria-invalid="true"] { border-color: var(--error); background: var(--error-bg); }
