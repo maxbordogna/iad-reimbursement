@@ -104,7 +104,7 @@ function addRow() {
       <button type="button" class="remove" aria-label="Remove line">×</button>
     </div>
     <div class="fx">
-      <label class="fx-toggle"><input type="checkbox" class="fx-on"> Paid in another currency, not converted by my bank</label>
+      <label class="fx-toggle"><input type="checkbox" class="fx-on"> <span class="fx-label"></span></label>
       <div class="fx-panel sub-field" hidden>
         <div class="fx-grid">
           <label class="field"><span>Amount paid</span><input class="fx-amount" inputmode="decimal" placeholder="0.00"></label>
@@ -342,6 +342,19 @@ function updateTotal() {
   totalCur.textContent = cur || '(choose CHF or EUR above)';
   totalCur.classList.toggle('pending', !cur);
   for (const el of rowsEl.querySelectorAll('.cur')) el.textContent = cur || '–';
+  // The conversion checkbox names the chosen payout currency.
+  for (const el of document.querySelectorAll('.fx-label')) {
+    el.textContent = cur ? `I paid in a currency other than ${cur}, and my bank has not converted the amount to ${cur}` : 'I paid in another currency';
+  }
+  for (const el of document.querySelectorAll('.cur-name')) el.textContent = cur || 'your payout currency';
+}
+
+// Step by step: the expense lines only appear once a payout currency is chosen.
+function revealExpenses() {
+  const body = document.getElementById('expenses-body');
+  if (!body.hidden || !form.currency.value) return;
+  body.hidden = false;
+  document.getElementById('expenses-waiting').hidden = true;
 }
 
 // Briefly highlight the amounts so students see they follow the currency toggle.
@@ -647,6 +660,7 @@ form.addEventListener('input', (e) => {
 form.addEventListener('change', (e) => {
   if (e.target.closest('.fx') && !e.target.matches('.fx-amount')) scheduleFx(e.target.closest('.row'), 0);
   if (e.target.name === 'currency') {
+    revealExpenses();
     flashCurrency();
     for (const li of rowsEl.children) if (rowFx.get(li).on) scheduleFx(li, 0);
   }

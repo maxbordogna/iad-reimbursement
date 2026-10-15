@@ -116,6 +116,8 @@ input:focus, select:focus, textarea:focus, button:focus-visible, a:focus-visible
 .slip-upload { max-width: 420px; }
 
 .currency { margin-bottom: 14px; }
+.currency legend { font-size: 15px; }
+.step-hint { margin: 0; }
 .segmented { display: inline-flex; align-self: flex-start; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
 .segmented label { position: relative; cursor: pointer; }
 .segmented input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
@@ -163,13 +165,14 @@ select:disabled { opacity: .6; }
 .amount[readonly] { background: var(--bg); color: var(--text); font-weight: 600; cursor: default; }
 .docs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0 0 32px; }
 .doc { min-width: 0; }
-.doc-label { margin: 0 0 6px; font-size: 13px; font-weight: 600; }
+.doc-label { margin: 0 0 6px; font-size: 15px; font-weight: 700; }
 .drop {
   position: relative; display: flex; align-items: center; justify-content: center; text-align: center;
   min-height: 72px; padding: 10px; border: 1.5px dashed var(--line); border-radius: 8px;
   cursor: pointer; font-size: 14px; line-height: 1.35;
 }
 .drop small { color: var(--muted); font-size: 12px; }
+.drop strong { font-size: 13px; font-weight: 600; }
 .drop:hover { border-color: var(--text); }
 .drop:focus-within { outline: 3px solid var(--highlight); outline-offset: 1px; border-color: var(--text); }
 .drop .file { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
@@ -283,3 +286,4 @@ select:disabled { opacity: .6; }
 .viewer a { color: var(--text); }
 
 .site-footer { padding: 16px 16px 48px; font-size: 13px; color: var(--muted); }
+.site-footer a { color: var(--text); }

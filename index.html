@@ -141,19 +141,21 @@
       <section class="card">
         <h2>5. Expenses <span class="de">Belege</span></h2>
         <fieldset class="field currency">
-          <legend>Payout currency <span class="de">Auszahlungs-Währung</span></legend>
+          <legend>In which currency do you want to be reimbursed? <span class="de">Auszahlungs-Währung</span></legend>
           <div class="segmented">
             <label><input type="radio" name="currency" value="CHF" required><span>CHF</span></label>
             <label><input type="radio" name="currency" value="EUR"><span>EUR</span></label>
           </div>
         </fieldset>
+        <p class="hint step-hint" id="expenses-waiting">Choose a currency to continue with your expenses.</p>
+
+        <div id="expenses-body" hidden>
         <div class="note">
-          <p><strong>All amounts must be in the payout currency.</strong> If you paid in another currency and your bank did not officially convert the amount into CHF or EUR, it must be converted at the official exchange rate <strong>of the date of purchase</strong>.</p>
-          <p>For such an expense, tick <strong>"Paid in another currency"</strong> on its line and enter what you paid: the amount is converted automatically at the <a href="https://www.rates.bazg.admin.ch/home" target="_blank" rel="noopener">official BAZG daily rate ↗</a>, and the calculation is printed on the receipt page.</p>
+          <p><strong>All amounts must be in the currency you just selected.</strong> If you paid in another currency and your bank did not officially convert the amount into CHF or EUR, it must be converted at the official exchange rate of the date of purchase.</p>
+          <p>For such an expense, tick <strong>"I paid in a currency other than <span class="cur-name">CHF</span>…"</strong> on its line and enter what you paid: the amount is converted automatically at the <a href="https://www.rates.bazg.admin.ch/home" target="_blank" rel="noopener">official BAZG daily rate ↗</a>, and the calculation is printed on the receipt page.</p>
         </div>
         <div class="note">
           <p><strong>One line per receipt.</strong> For each line, upload the receipt (Beleg) and the matching payment from your bank account (Kontobewegung). Photos and PDFs both work, up to 10 lines.</p>
-          <p>Your documents are numbered automatically: line 1 becomes Beleg 1, and each receipt is placed on one page together with its proof of payment. This lets the finance team refer to a specific document if something needs correcting.</p>
         </div>
 
         <ol id="rows" class="rows"></ol>
@@ -161,6 +163,7 @@
         <div class="rows-foot">
           <button type="button" id="add-row" class="btn-ghost">+ Add line</button>
           <p class="total">Total <strong id="total">0.00</strong> <strong id="total-cur"></strong></p>
+        </div>
         </div>
       </section>
 
@@ -226,7 +229,7 @@
   </main>
 
   <footer class="site-footer wrap">
-    <p>Unofficial helper for the ZHdK Zahlungsauftrag. Questions about reimbursements go to your programme office.</p>
+    <p>This platform is currently under development and being tested. If you have any questions or encounter any problems, please contact <a href="mailto:massimo.bordogna@zhdk.ch">massimo.bordogna@zhdk.ch</a>.</p>
   </footer>
 </body>
 </html>
