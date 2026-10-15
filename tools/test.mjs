@@ -22,7 +22,7 @@ const bankPdf = { kind: 'pdf', mime: 'application/pdf', bytes: pdf, page: 1 };
 
 const data = {
   createdBy: { name: 'Anna Muster', deptTel: 'MA Interaction Design / 079 000 00 00', date: '2026-09-25' },
-  workflow: '97209900',
+  workflow: '9720 9900',
   payee: { fullName: 'Anna MUSTER', street: 'Musterstrasse 12', zipCity: '8005 Zürich', country: 'SCHWEIZ' },
   paymentSlip: false,
   bank: { name: 'TEST BANK (placeholder)', zipCity: '8001 Zürich', country: 'SCHWEIZ', iban: 'CH93 0076 2011 6238 5295 7', swift: 'UBSWCHZH80A' },

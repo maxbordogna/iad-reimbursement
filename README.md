@@ -1,11 +1,13 @@
 # Reimbursement form helper
 
-A static web page that lets students fill in the ZHdK payment order (*Zahlungsauftrag*) without Adobe Acrobat. It produces two PDFs, offered in two steps (the second unlocks once the student confirms the preview):
+A static web page that lets students fill in the ZHdK payment order (*Zahlungsauftrag*) without Adobe Acrobat. Students first check the generated form with their receipts (step 1); once they confirm, they download both files (two numbered buttons; a confirmation appears once both are downloaded) and email **both** to finance (step 2):
 
-- **Official form** (`…_FOR_FINANCE.pdf`): the original ZHdK XFA form, filled in, emailed to the finance person of the programme (opens in Adobe Acrobat).
-- **Preview** (`…_PREVIEW_do_not_submit.pdf`): a flat PDF redrawn from the form's layout, so students can check their entries in any PDF viewer.
+- **XFA official form** (`…_XFA_Official_form.pdf`): the original ZHdK XFA form, filled in, with the receipts as file attachments (opens in Adobe Acrobat).
+- **Normal PDF** (`…_Normal_PDF.pdf`): the same form redrawn as a flat PDF followed by the receipt pages, so it opens in any PDF viewer. This is also what students check in step 1.
 
-Every expense needs two uploads (photo or PDF): the receipt (*Beleg*) and the bank movement (*Kontobewegung*). They become one page per expense, appended to the preview and embedded in the official form as a file attachment (`…_Belege.pdf`). If the student ticks the payment-slip option, the slip is required too: it comes first in the preview and is a separate attachment (`…_Einzahlungsschein.pdf`) in the official form. Acrobat opens the attachments panel automatically. Acrobat draws XFA pages from the template and ignores appended PDF pages, so an attachment is the only way to include them in the official file.
+The Workflow Bezeichnung is always filled in as `9720 9900`.
+
+Every expense needs two uploads (photo or PDF): the receipt (*Beleg*) and the bank movement (*Kontobewegung*). They become one page per expense, appended to the normal PDF and embedded in the official form as a file attachment (`…_Belege.pdf`). If the student ticks the payment-slip option, the slip is required too: it comes first in the normal PDF and is a separate attachment (`…_Einzahlungsschein.pdf`) in the official form. Acrobat opens the attachments panel automatically. Acrobat draws XFA pages from the template and ignores appended PDF pages, so an attachment is the only way to include them in the official file.
 
 Everything runs in the browser. No data is uploaded or stored; the only outside request is the purchase date sent to the BAZG to look up an exchange rate.
 
@@ -17,7 +19,7 @@ The form's fields are declared with `bind match="none"`, so the XFA data packet 
 
 - `index.html`, `styles.css`, `js/app.js`: the form UI and validation
 - `js/xfa-fill.js`: fills the official XFA form
-- `js/preview.js`: draws the preview PDF (coordinates taken from the XFA template) and the receipt pages
+- `js/preview.js`: draws the normal PDF (form layout taken from the XFA template, then the receipt pages)
 - `js/uploads.js`: reads uploaded photos (scaled down to 2000 px) and PDFs
 - `js/exchange.js`: converts expenses paid in another currency at the official BAZG daily rate of the purchase date (reads the data feed behind [rates.bazg.admin.ch](https://www.rates.bazg.admin.ch/home); only the date is sent). If the feed fails, students convert by hand.
 - `js/options.js`: **editable lists**: programmes ("Other" is added automatically) and country calling codes

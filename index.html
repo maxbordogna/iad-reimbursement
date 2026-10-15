@@ -176,41 +176,50 @@
     <section id="result" class="result" hidden tabindex="-1" aria-labelledby="result-title">
       <h2 id="result-title">Your documents are ready</h2>
       <ol class="stepper" aria-label="Two steps">
-        <li id="stepper-1" class="current"><span class="dot">1</span> Check your preview</li>
-        <li id="stepper-2"><span class="dot">2</span> Send the official file to finance</li>
+        <li id="stepper-1" class="current"><span class="dot">1</span> Check your form</li>
+        <li id="stepper-2"><span class="dot">2</span> Send both files to finance</li>
       </ol>
 
       <div class="card step" id="step-check">
-        <p class="step-tag">Step 1 of 2 · For you</p>
-        <h3>Check your preview</h3>
-        <p>This is a copy of your form with all receipts, for <strong>you</strong> to check and keep. Don't send it to anyone.</p>
+        <p class="step-tag">Step 1 of 2 · Check</p>
+        <h3>Check your form and receipts</h3>
+        <p>This is your filled-in form followed by all your receipts. It's exactly what the finance team will see, so check every page carefully.</p>
         <div class="viewer">
-          <iframe id="preview-frame" title="Preview of the filled form"></iframe>
+          <iframe id="preview-frame" title="Your form and receipts"></iframe>
           <p class="viewer-links">
-            <a id="open-preview" target="_blank" rel="noopener">Open preview in a new tab</a>
-            <a id="dl-preview" download>Download preview</a>
+            <a id="open-preview" target="_blank" rel="noopener">Open in a new tab</a>
           </p>
         </div>
         <p class="hint">Something wrong? Correct it in the form above and generate again.</p>
         <label class="check confirm">
           <input type="checkbox" id="confirm-checked">
-          <span>I checked my preview and everything is correct.</span>
+          <span>I checked my form and receipts and everything is correct.</span>
         </label>
         <p class="next-hint">Next: step 2 below ↓</p>
       </div>
 
       <div class="card step" id="step-send" data-locked>
         <p class="step-tag">Step 2 of 2 · For the finance team</p>
-        <h3>Download the official file and send it to finance</h3>
-        <p class="locked-msg">Confirm your preview in step 1 to unlock this step.</p>
+        <h3>Download both files and send them to finance</h3>
+        <p class="locked-msg">Confirm your form in step 1 to unlock this step.</p>
         <div class="unlocked">
-          <p><strong>The official file is different from the preview in step 1.</strong> It's the ZHdK form that the finance team works with, so it's the only one you send.</p>
-          <ol class="steps">
-            <li>Download the official file. Your receipts are attached inside it.</li>
-            <li><strong>Email it to the finance person responsible for your programme.</strong></li>
+          <p>The finance team needs <strong>two files</strong>. Download both:</p>
+          <ol class="downloads-list">
+            <li>
+              <a class="btn-primary dl" id="dl-official" download aria-disabled="true">Download XFA official form</a>
+              <span>The official ZHdK form as an XFA file for Adobe Acrobat. Your receipts are attached inside it.</span>
+            </li>
+            <li>
+              <a class="btn-primary dl" id="dl-copy" download aria-disabled="true">Download normal PDF</a>
+              <span>The same form and receipts as a normal PDF that opens anywhere: the document you checked in step 1.</span>
+            </li>
           </ol>
-          <a class="btn-primary" id="dl-official" download aria-disabled="true">Download official file</a>
-          <p class="note">This file only opens properly in <strong>Adobe Acrobat</strong>, which the finance team uses. On your computer it may show a "Please wait…" message. That's normal, so don't worry: you already checked the content in step 1.</p>
+          <p class="send">Then <strong>email both files to the finance person responsible for your programme.</strong></p>
+          <div class="done-msg" id="dl-done" role="status" hidden>
+            <p class="done-title">✓ Done! Both files are downloaded.</p>
+            <p>Last step: email the two files to the finance person responsible for your programme. You'll find them in your Downloads folder.</p>
+          </div>
+          <p class="note">The XFA official form only opens properly in <strong>Adobe Acrobat</strong>, which the finance team uses. On your computer it may show a "Please wait…" message. That's normal: its content is the same as the form you checked in step 1.</p>
         </div>
       </div>
     </section>

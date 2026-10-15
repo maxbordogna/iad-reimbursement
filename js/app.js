@@ -492,7 +492,7 @@ function collectData() {
       deptTel: `${programmeEl.value === 'Other' ? v('programmeOther') : v('programme')} / ${formatPhone(dialCode(v('phonePrefix')), v('phoneNumber'))}`,
       date: v('createdDate'),
     },
-    workflow: '', // filled in later by the programme's secretary
+    workflow: '9720 9900', // the same for every IAD reimbursement
     payee: {
       fullName: `${v('payeeFirst')} ${upper('payeeLast')}`,
       street: v('payeeStreet'),
@@ -541,8 +541,21 @@ function syncStep2() {
   document.getElementById('stepper-1').className = ok ? 'done' : 'current';
   document.getElementById('stepper-2').className = ok ? 'current' : '';
   document.querySelector('.next-hint').hidden = !ok;
-  document.getElementById('dl-official').setAttribute('aria-disabled', String(!confirmEl.checked));
+  for (const el of dlLinks) el.setAttribute('aria-disabled', String(!confirmEl.checked));
 }
+// Tick off each download; once both files are downloaded, confirm the end of the process.
+const dlLinks = [...document.querySelectorAll('.dl')];
+const dlDone = document.getElementById('dl-done');
+for (const el of dlLinks) {
+  el.addEventListener('click', () => {
+    el.classList.add('done');
+    if (dlLinks.every((d) => d.classList.contains('done')) && dlDone.hidden) {
+      dlDone.hidden = false;
+      dlDone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  });
+}
+
 confirmEl.addEventListener('change', () => {
   syncStep2();
   if (confirmEl.checked) stepSend.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -596,8 +609,12 @@ form.addEventListener('submit', async (e) => {
     const previewUrl = URL.createObjectURL(new Blob([preview], { type: 'application/pdf' }));
     urls = [officialUrl, previewUrl];
 
-    Object.assign(document.getElementById('dl-official'), { href: officialUrl, download: `${base}_FOR_FINANCE.pdf` });
-    Object.assign(document.getElementById('dl-preview'), { href: previewUrl, download: `${base}_PREVIEW_do_not_submit.pdf` });
+    // Both files go to finance: the official Acrobat form (receipts attached inside) and
+    // the same form with the receipts as pages, which opens in any PDF viewer.
+    Object.assign(document.getElementById('dl-official'), { href: officialUrl, download: `${base}_XFA_Official_form.pdf` });
+    Object.assign(document.getElementById('dl-copy'), { href: previewUrl, download: `${base}_Normal_PDF.pdf` });
+    for (const el of dlLinks) el.classList.remove('done');
+    dlDone.hidden = true;
     confirmEl.checked = false;
     syncStep2();
     document.getElementById('open-preview').href = previewUrl;

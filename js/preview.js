@@ -1,4 +1,5 @@
-// Draws a flat, viewable copy of the Zahlungsauftrag for students to check their input.
+// Draws a flat copy of the Zahlungsauftrag with the receipts as pages. Students check it,
+// and it is sent to finance together with the official XFA form (it opens in any viewer).
 // All positions are taken from the XFA template (in mm from the top-left corner), so the
 // preview matches the official form closely. Fonts are Helvetica instead of Verdana.
 
@@ -89,7 +90,7 @@ function makeClean(font) {
 export async function buildPreview(PDFLib, logoBytes, d) {
   const { PDFDocument, StandardFonts, rgb } = PDFLib;
   const doc = await PDFDocument.create();
-  doc.setTitle('Zahlungsauftrag – Preview');
+  doc.setTitle('Zahlungsauftrag – Normal PDF');
   const page = doc.addPage([PAGE_W, PAGE_H]);
   const regular = await doc.embedFont(StandardFonts.Helvetica);
   const bold = await doc.embedFont(StandardFonts.HelveticaBold);
@@ -267,7 +268,7 @@ export async function buildPreview(PDFLib, logoBytes, d) {
   value(d.currency, cCur, y, wCur, TABLE.rowH, { size: 7, font: bold, inset: 1 });
 
   // --- preview marker -----------------------------------------------------------------
-  text('PREVIEW – for checking only. Submit the official form file, not this one.', 9.344, 288.598, { color: [0.55, 0.55, 0.55] });
+  text('Normal PDF version. Sent to finance together with the XFA official form (Adobe Acrobat).', 9.344, 288.598, { color: [0.55, 0.55, 0.55] });
 
   await addReceiptPages(PDFLib, doc, d);
   return doc.save();
