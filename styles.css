@@ -78,6 +78,11 @@ h1 { margin: 0 0 12px; font-size: clamp(28px, 5vw, 40px); line-height: 1.1; lett
 .field .de { font-weight: 400; }
 .field small { font-weight: 400; color: var(--muted); font-size: 13px; }
 .optional { margin-left: 0; font-size: 13px; font-weight: 400; font-style: italic; color: var(--muted); }
+.audience-note { display: flex; align-items: center; gap: 10px; margin: 0 0 16px; color: var(--text); font-weight: 700; text-transform: uppercase; letter-spacing: .02em; }
+.audience-note::before {
+  content: "!"; flex: none; display: grid; place-items: center; width: 22px; height: 22px;
+  border: 2px solid currentColor; border-radius: 50%; font-size: 14px; line-height: 1;
+}
 .required-note { margin: 0 0 14px; font-size: 14px; color: var(--muted); }
 .sub-field { margin-top: 10px; padding-left: 14px; border-left: 3px solid var(--text); }
 fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }

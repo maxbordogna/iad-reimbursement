@@ -380,6 +380,7 @@ const LABELS = {
   createdLast: 'Filled in by: last name',
   programme: 'Programme',
   programmeOther: 'Programme name',
+  department: 'Department',
   phonePrefix: 'Phone: country code',
   phoneNumber: 'Phone number',
   createdDate: 'Filled in by: date',

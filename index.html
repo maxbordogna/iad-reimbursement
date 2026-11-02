@@ -25,6 +25,8 @@
 
   <main class="wrap">
     <form id="form" novalidate>
+      <p class="audience-note" role="note">Use this platform only if you’re part of the Interaction Design Department</p>
+
       <p class="required-note">All fields are required unless marked <span class="optional">(optional)</span></p>
 
       <div id="error-summary" class="error-summary" role="alert" tabindex="-1" hidden>
@@ -45,7 +47,7 @@
           </label>
           <div class="field">
             <label class="field">
-              <span>Programme <span class="de">Abteilung</span></span>
+              <span>Programme <span class="de">Studiengang</span></span>
               <select name="programme" id="programme" required>
                 <option value="">Choose…</option>
               </select>
@@ -56,6 +58,13 @@
               <small>Because you chose "Other" as programme.</small>
             </label>
           </div>
+          <label class="field">
+            <span>Department <span class="de">Departement</span></span>
+            <select name="department" required>
+              <option value="">Choose…</option>
+              <option>Interaction Design</option>
+            </select>
+          </label>
           <div class="field">
             <span id="phone-label">Phone number <span class="de">Tel. Nummer</span></span>
             <div class="phone">
