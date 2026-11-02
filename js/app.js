@@ -671,6 +671,9 @@ form.addEventListener('change', (e) => {
 });
 
 addRow();
+// Browsers may restore earlier entries on reload (e.g. the currency); match the page to them.
 syncBankState();
 syncProgramme();
+revealExpenses();
+updateTotal();
 refresh();

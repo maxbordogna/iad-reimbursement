@@ -273,6 +273,7 @@ select:disabled { opacity: .6; }
 .dl.done::before { content: "✓\00a0"; }
 .done-msg { margin: 0 0 16px; padding: 14px 16px; border: 2px solid #1f7a3a; border-radius: 8px; background: #e9f6ee; color: #12361f; }
 .done-msg p { margin: 0; }
+.done-msg a, .send a { color: inherit; font-weight: 600; }
 .done-msg .done-title { font-weight: 700; font-size: 17px; margin-bottom: 4px; }
 @media (prefers-color-scheme: dark) { .done-msg { background: #14301f; color: #d6f3e0; border-color: #4caf73; } }
 @media (max-width: 640px) {
